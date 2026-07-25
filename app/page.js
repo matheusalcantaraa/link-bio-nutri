@@ -27,7 +27,7 @@ export default function Home() {
           backgroundImage: "url('/marcadagua.png')", 
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          backgroundSize: '80%', 
+          backgroundSize: 'cover', 
         }}
       />
 
