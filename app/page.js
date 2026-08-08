@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 
 export default function Home() {
   const [links, setLinks] = useState([]);
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState(null);
 
   useEffect(() => {
     async function fetchLinks() {
@@ -64,11 +65,19 @@ export default function Home() {
 
         {/* Lista de PDFs */}
         <div className="w-full flex flex-col gap-4 mb-12">
-          {Object.entries(linksPorCategoria).map(([categoria, itens]) => (
-            <section key={categoria} className="flex flex-col gap-3">
-              <h2 className="ml-3 text-lg font-extrabold text-green-800">{categoria}</h2>
+          {categoriaSelecionada ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setCategoriaSelecionada(null)}
+                className="self-start ml-3 text-sm font-bold text-green-700 hover:text-green-900"
+              >
+                ← Voltar para as pastas
+              </button>
 
-              {itens.map((link) => (
+              <h2 className="ml-3 text-xl font-extrabold text-green-800">{categoriaSelecionada}</h2>
+
+              {linksPorCategoria[categoriaSelecionada]?.map((link) => (
                 <a
                   key={link.id}
                   href={link.arquivo_url}
@@ -79,8 +88,20 @@ export default function Home() {
                   {link.titulo}
                 </a>
               ))}
-            </section>
-          ))}
+            </>
+          ) : (
+            Object.entries(linksPorCategoria).map(([categoria, itens]) => (
+              <button
+                key={categoria}
+                type="button"
+                onClick={() => setCategoriaSelecionada(categoria)}
+                className="w-full bg-white text-green-800 font-bold text-left p-4 rounded-2xl shadow-[0_4px_14px_0_rgba(0,0,0,0.05)] border border-green-100 hover:bg-green-600 hover:text-white hover:scale-105 hover:shadow-lg transition-all duration-300 ease-out flex items-center justify-between"
+              >
+                <span>{categoria}</span>
+                <span className="text-sm opacity-70">{itens.length} material{itens.length === 1 ? '' : 'is'} →</span>
+              </button>
+            ))
+          )}
           
           {links.length === 0 && (
             <p className="text-center text-gray-500 mt-8">Nenhum material disponível no momento.</p>
