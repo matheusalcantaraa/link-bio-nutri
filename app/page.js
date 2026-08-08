@@ -98,13 +98,13 @@ export default function Home() {
                 className="w-full bg-white text-green-800 font-bold text-left p-4 rounded-2xl shadow-[0_4px_14px_0_rgba(0,0,0,0.05)] border border-green-100 hover:bg-green-600 hover:text-white hover:scale-105 hover:shadow-lg transition-all duration-300 ease-out flex items-center justify-between"
               >
                 <span>{categoria}</span>
-                <span className="text-sm opacity-70">{itens.length} material{itens.length === 1 ? '' : 'is'} →</span>
+                <span className="text-sm opacity-70">{itens.length} arquivo{itens.length === 1 ? '' : 's'} →</span>
               </button>
             ))
           )}
           
           {links.length === 0 && (
-            <p className="text-center text-gray-500 mt-8">Nenhum material disponível no momento.</p>
+            <p className="text-center text-gray-500 mt-8">Nenhum arquivo disponível no momento.</p>
           )}
         </div>
 
