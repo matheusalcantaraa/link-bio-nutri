@@ -17,6 +17,15 @@ export default function Home() {
     fetchLinks();
   }, []);
 
+  const linksPorCategoria = links.reduce((grupos, link) => {
+    const categoria = link.categoria || 'Geral';
+
+    if (!grupos[categoria]) grupos[categoria] = [];
+    grupos[categoria].push(link);
+
+    return grupos;
+  }, {});
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-green-50 to-green-100 flex flex-col items-center py-12 px-4 font-sans relative">
       
@@ -55,16 +64,22 @@ export default function Home() {
 
         {/* Lista de PDFs */}
         <div className="w-full flex flex-col gap-4 mb-12">
-          {links.map((link) => (
-            <a
-              key={link.id}
-              href={link.arquivo_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full bg-white text-green-800 font-bold text-center p-4 rounded-full shadow-[0_4px_14px_0_rgba(0,0,0,0.05)] border border-green-100 hover:bg-green-600 hover:text-white hover:scale-105 hover:shadow-lg transition-all duration-300 ease-out flex items-center justify-center"
-            >
-              {link.titulo}
-            </a>
+          {Object.entries(linksPorCategoria).map(([categoria, itens]) => (
+            <section key={categoria} className="flex flex-col gap-3">
+              <h2 className="ml-3 text-lg font-extrabold text-green-800">{categoria}</h2>
+
+              {itens.map((link) => (
+                <a
+                  key={link.id}
+                  href={link.arquivo_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full bg-white text-green-800 font-bold text-center p-4 rounded-full shadow-[0_4px_14px_0_rgba(0,0,0,0.05)] border border-green-100 hover:bg-green-600 hover:text-white hover:scale-105 hover:shadow-lg transition-all duration-300 ease-out flex items-center justify-center"
+                >
+                  {link.titulo}
+                </a>
+              ))}
+            </section>
           ))}
           
           {links.length === 0 && (
