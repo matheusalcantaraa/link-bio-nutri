@@ -4,7 +4,9 @@ import { supabase } from '@/lib/supabase';
 
 export default function Admin() {
   const [titulo, setTitulo] = useState('');
+  const [categoria, setCategoria] = useState('Geral');
   const [arquivo, setArquivo] = useState(null);
+  const [linkExterno, setLinkExterno] = useState('');
   const [senha, setSenha] = useState('');
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,35 +29,44 @@ export default function Admin() {
   const handleUpload = async (e) => {
     e.preventDefault();
     if (senha !== '210806') return setStatus('Senha incorreta!');
+    if (!arquivo && !linkExterno.trim()) {
+      return setStatus('Envie um arquivo ou informe um link.');
+    }
     
     setLoading(true);
     setStatus('Fazendo upload... Aguarde.');
 
     try {
-      const fileExt = arquivo.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('pdfs')
-        .upload(fileName, arquivo);
+      let publicUrl = linkExterno.trim();
 
-      if (uploadError) throw uploadError;
+      if (arquivo) {
+        const fileExt = arquivo.name.split('.').pop();
+        const fileName = `${Date.now()}.${fileExt}`;
 
-      const { data } = supabase.storage
-        .from('pdfs')
-        .getPublicUrl(fileName);
-        
-      const publicUrl = data.publicUrl;
+        const { error: uploadError } = await supabase.storage
+          .from('pdfs')
+          .upload(fileName, arquivo);
+
+        if (uploadError) throw uploadError;
+
+        const { data } = supabase.storage
+          .from('pdfs')
+          .getPublicUrl(fileName);
+
+        publicUrl = data.publicUrl;
+      }
 
       const { error: dbError } = await supabase
         .from('links_pdf')
-        .insert([{ titulo, arquivo_url: publicUrl }]);
+        .insert([{ titulo, categoria, arquivo_url: publicUrl }]);
 
       if (dbError) throw dbError;
 
       setStatus('Sucesso! O material já está disponível no site.');
       setTitulo('');
+      setCategoria('Geral');
       setArquivo(null);
+      setLinkExterno('');
       fetchLinks(); // Atualiza a lista na mesma hora
     } catch (error) {
       setStatus(`Erro ao enviar: ${error.message}`);
@@ -112,14 +123,27 @@ export default function Admin() {
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">Arquivo PDF</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">Arquivo PDF (opcional)</label>
           <input 
             type="file" 
             accept=".pdf"
-            required
             onChange={(e) => setArquivo(e.target.files[0])}
             className="w-full border rounded-lg p-3 bg-gray-50 cursor-pointer text-sm"
           />
+        </div>
+
+        <p className="text-center text-xs font-semibold text-gray-500 -my-2">OU</p>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">Link externo</label>
+          <input
+            type="url"
+            value={linkExterno}
+            onChange={(e) => setLinkExterno(e.target.value)}
+            className="w-full border rounded-lg p-3 outline-none focus:ring-2 focus:ring-green-500 bg-gray-50"
+            placeholder="https://..."
+          />
+          <p className="mt-1 text-xs text-gray-500">Use para links do Google Drive, YouTube, sites e outros materiais.</p>
         </div>
 
         <div>
@@ -132,6 +156,19 @@ export default function Admin() {
             className="w-full border rounded-lg p-3 outline-none focus:ring-2 focus:ring-green-500 bg-gray-50"
             placeholder="Digite a senha para autorizar"
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">Categoria</label>
+          <input
+            type="text"
+            required
+            value={categoria}
+            onChange={(e) => setCategoria(e.target.value)}
+            className="w-full border rounded-lg p-3 outline-none focus:ring-2 focus:ring-green-500 bg-gray-50"
+            placeholder="Ex: Livros"
+          />
+          <p className="mt-1 text-xs text-gray-500">Materiais com a mesma categoria ficam juntos no site.</p>
         </div>
 
         <button 
@@ -152,9 +189,10 @@ export default function Admin() {
         <div className="flex flex-col gap-3">
           {links.map((link) => (
             <div key={link.id} className="flex justify-between items-center border border-gray-200 p-3 rounded-lg bg-gray-50">
-              <span className="font-medium text-gray-700 truncate mr-3" title={link.titulo}>
-                {link.titulo}
-              </span>
+              <div className="min-w-0 mr-3">
+                <p className="font-medium text-gray-700 truncate" title={link.titulo}>{link.titulo}</p>
+                <p className="text-xs text-green-700">{link.categoria || 'Geral'}</p>
+              </div>
               <button
                 type="button"
                 onClick={() => handleDelete(link.id, link.arquivo_url)}
